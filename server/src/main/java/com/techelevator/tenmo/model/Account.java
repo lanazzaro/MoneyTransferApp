@@ -1,10 +1,12 @@
 package com.techelevator.tenmo.model;
 
+import javax.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 
 public class Account {
     private int acctId;
     private int userId;
+    @DecimalMin(value = "0.00", inclusive = true, message = "Cannot have a negative balance.")
     private BigDecimal balance;
 
     public Account() {

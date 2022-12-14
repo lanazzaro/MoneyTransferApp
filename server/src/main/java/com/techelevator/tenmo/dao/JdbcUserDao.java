@@ -67,7 +67,13 @@ public class JdbcUserDao implements UserDao {
             return false;
         }
 
-
+        String sqlAccount = "INSERT INTO account (user_id, balance) VALUES (?, ?) RETURNING account_id";
+        Integer newAccountId;
+        try {
+            newAccountId = jdbcTemplate.queryForObject(sqlAccount, Integer.class, newUserId, 1000.00);
+        } catch (DataAccessException e) {
+            return false;
+        }
         return true;
     }
 

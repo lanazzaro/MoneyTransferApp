@@ -5,11 +5,12 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-
+@Component
 public class JdbcTransactionDao implements TransactionDao{
 
     private JdbcTemplate jdbcTemplate;
@@ -17,13 +18,6 @@ public class JdbcTransactionDao implements TransactionDao{
     public JdbcTransactionDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-
-//            transaction.setTransId(rs.getInt("transaction_id"));
-//        transaction.setFromUserId(rs.getInt("from_user_id"));
-//        transaction.setToUserId(rs.getInt("to_user_id"));
-//        transaction.setAmount(rs.getBigDecimal("amount"));
-//        transaction.setStatus(rs.getString("status"));
-//        transaction.setTransTimestamp(rs.getTimestamp("trans_date"));
 
     @Override
     public boolean create(Transaction transaction) {

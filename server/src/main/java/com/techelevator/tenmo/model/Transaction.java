@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.model;
 
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotEmpty;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -10,13 +11,13 @@ public class Transaction {
     private int transId;
     private int fromUserId;
     private int toUserId;
+    @DecimalMin (value = "0.01", inclusive = true, message = "Must transfer more than $0.00.")
     private BigDecimal amount;
     private Timestamp transTimestamp;
     private String status;
 
     public Transaction(){
         this.transTimestamp = new Timestamp(System.currentTimeMillis());
-        this.status = "Pending";
     }
 
     public Transaction(int transId, int fromUserId, int toUserId, BigDecimal amount, Timestamp transTimestamp, String status) {

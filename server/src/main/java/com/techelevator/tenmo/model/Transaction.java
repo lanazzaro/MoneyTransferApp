@@ -16,6 +16,7 @@ public class Transaction {
 
     public Transaction(){
         this.transTimestamp = new Timestamp(System.currentTimeMillis());
+        this.status = "Pending";
     }
 
     public Transaction(int transId, int fromUserId, int toUserId, BigDecimal amount, Timestamp transTimestamp, String status) {

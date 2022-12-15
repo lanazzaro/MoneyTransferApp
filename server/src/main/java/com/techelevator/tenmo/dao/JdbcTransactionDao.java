@@ -32,20 +32,27 @@ public class JdbcTransactionDao implements TransactionDao{
     }
 
     @Override
-    public Transaction getTransactionById(int transId) {
-        String sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE transaction_id = ?";
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, transId);
+    public Transaction getTransactionById(int transId, int fromUserId) {
+        String sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE transaction_id = ? and from_user_id = ?";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, transId, fromUserId);
         if (rowSet.next()){
             return mapRowToTransactions(rowSet);
         }
         // TODO low priorty - add new custom exceptions
-        throw new UsernameNotFoundException("Transaction for " + transId + " was not found.");
+        throw new UsernameNotFoundException("Transaction for " + transId + " was not found or you are not allowed to view it ;)");
     }
 
-
+//if true, only return Pending transfers, else return all transfers
     @Override
-    public List<Transaction> getTransactionsByUser(int userId) {
-        String sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE user_id = ?";
+    public List<Transaction> getTransactionsByUser(int userId, boolean onlyPending) {
+        String sql = "";
+
+        if(onlyPending) {
+            sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE from_user_id = ? and status = 'Pending'";
+        } else {
+            sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE from_user_id = ?";
+        }
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, userId);
         List<Transaction> outputList = new ArrayList<>();
         while (rowSet.next()){

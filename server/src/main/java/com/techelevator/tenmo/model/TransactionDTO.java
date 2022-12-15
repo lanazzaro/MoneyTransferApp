@@ -7,15 +7,14 @@ import java.sql.Timestamp;
 public class TransactionDTO {
 
     private int transId;
-    private int fromUserId;
-    private int toUserId;
+    private int UserId;
     @DecimalMin(value = "0.01", inclusive = true, message = "Must transfer more than $0.00.")
     private BigDecimal amount;
     private Timestamp transTimestamp;
     private String status;
 
-    public TransactionDTO(int toUserId, BigDecimal amount) {
-        this.toUserId = toUserId;
+    public TransactionDTO(int UserId, BigDecimal amount) {
+        this.UserId = UserId;
         this.amount = amount;
         this.transTimestamp = new Timestamp(System.currentTimeMillis());
     }
@@ -28,20 +27,12 @@ public class TransactionDTO {
         this.transId = transId;
     }
 
-    public int getFromUserId() {
-        return fromUserId;
+    public int getUserId() {
+        return UserId;
     }
 
-    public void setFromUserId(int fromUserId) {
-        this.fromUserId = fromUserId;
-    }
-
-    public int getToUserId() {
-        return toUserId;
-    }
-
-    public void setToUserId(int toUserId) {
-        this.toUserId = toUserId;
+    public void setUserId(int toUserId) {
+        this.UserId = toUserId;
     }
 
     public BigDecimal getAmount() {

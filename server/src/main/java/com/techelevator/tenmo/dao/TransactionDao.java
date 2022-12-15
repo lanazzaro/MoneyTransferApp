@@ -8,9 +8,9 @@ public interface TransactionDao {
 
     boolean create(Transaction transaction);
 
-    Transaction getTransactionById(int transId);
+    Transaction getTransactionById(int transId, int fromUserId);
 
-    List<Transaction> getTransactionsByUser(int userId);
+    List<Transaction> getTransactionsByUser(int userId, boolean includePending);
 
     String getStatus(int transId);
 

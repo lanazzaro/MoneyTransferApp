@@ -40,6 +40,9 @@ public class TransactionController {
     @RequestMapping(path = "/send", method = RequestMethod.POST)
     public void sendMoney(@RequestBody @Valid TransactionDTO inputTransactionDto, Principal principal){
         int fromUserId = userDao.findIdByUsername(principal.getName());
+        if (!checksController.userIdsAreDifferent(fromUserId, inputTransactionDto.getUserId())){
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Transaction must go to someone other than yourself.");
+        }
         // if check balance fails
         if (!checksController.enoughMoney(fromUserId, inputTransactionDto.getAmount())) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "New transaction amounts cannot exceed a user's current balance.");
@@ -49,7 +52,7 @@ public class TransactionController {
         Transaction newTransaction = new Transaction();
         newTransaction.setStatus("Approved");
         newTransaction.setFromUserId(fromUserId);
-        newTransaction.setToUserId(inputTransactionDto.getToUserId());
+        newTransaction.setToUserId(inputTransactionDto.getUserId());
         newTransaction.setAmount(inputTransactionDto.getAmount());
 
         // reduce from user's amount by balance amount
@@ -63,6 +66,42 @@ public class TransactionController {
         if (!transactionResult) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction did not save to the database. (sendMoney)");
         }
+    }
+//create request, get pending request, decide pending request
+
+    @RequestMapping(path = "/request", method = RequestMethod.POST)
+    public void requestMoney(@RequestBody @Valid TransactionDTO inputTransactionDto, Principal principal){
+        int fromUserId = inputTransactionDto.getUserId();
+        int toUserId = userDao.findIdByUsername(principal.getName());
+        if (!checksController.userIdsAreDifferent(toUserId, inputTransactionDto.getUserId())){
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "You can't request money from yourself.");
+        }
+        // check toUser's balance
+        if (!checksController.enoughMoney(fromUserId, inputTransactionDto.getAmount())) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "New transaction amounts cannot exceed a user's current balance.");
+        }
+        // set status approved
+        Transaction newTransaction = new Transaction();
+        newTransaction.setStatus("Pending");
+        newTransaction.setFromUserId(fromUserId);
+        newTransaction.setToUserId(toUserId);
+        newTransaction.setAmount(inputTransactionDto.getAmount());
+
+        // create and log transaction
+        boolean transactionResult = transactionDao.create(newTransaction);
+        if (!transactionResult) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction did not save to the database. (requestMoney)");
+        }
+    }
+
+    @RequestMapping(path = "/view/{onlyPending}", method = RequestMethod.GET)
+    public List<Transaction> viewTransactionsByUser(@PathVariable boolean onlyPending, Principal principal){
+        return transactionDao.getTransactionsByUser(userDao.findIdByUsername(principal.getName()), onlyPending);
+    }
+
+    @RequestMapping(path = "/view/transactions/{transId}", method = RequestMethod.GET)
+    public Transaction viewTransById(@PathVariable int transId, Principal principal){
+        return transactionDao.getTransactionById(transId, userDao.findIdByUsername(principal.getName()));
     }
 
 

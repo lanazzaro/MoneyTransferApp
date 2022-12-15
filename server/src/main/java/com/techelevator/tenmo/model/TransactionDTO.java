@@ -1,33 +1,23 @@
 package com.techelevator.tenmo.model;
 
 import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotEmpty;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.Instant;
 
-public class Transaction {
+public class TransactionDTO {
 
     private int transId;
     private int fromUserId;
     private int toUserId;
-    @DecimalMin (value = "0.01", inclusive = true, message = "Must transfer more than $0.00.")
+    @DecimalMin(value = "0.01", inclusive = true, message = "Must transfer more than $0.00.")
     private BigDecimal amount;
     private Timestamp transTimestamp;
     private String status;
 
-    public Transaction(){
-        this.transTimestamp = new Timestamp(System.currentTimeMillis());
-    }
-
-
-    public Transaction(int transId, int fromUserId, int toUserId, BigDecimal amount, Timestamp transTimestamp, String status) {
-        this.transId = transId;
-        this.fromUserId = fromUserId;
+    public TransactionDTO(int toUserId, BigDecimal amount) {
         this.toUserId = toUserId;
         this.amount = amount;
-        this.transTimestamp = transTimestamp;
-        this.status = status;
+        this.transTimestamp = new Timestamp(System.currentTimeMillis());
     }
 
     public int getTransId() {
@@ -76,17 +66,5 @@ public class Transaction {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    @Override
-    public String toString() {
-        return "Transaction{" +
-                "transId=" + transId +
-                ", fromUserId=" + fromUserId +
-                ", toUserId=" + toUserId +
-                ", amount=" + amount +
-                ", transTimestamp=" + transTimestamp +
-                ", status='" + status + '\'' +
-                '}';
     }
 }

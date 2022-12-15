@@ -6,12 +6,15 @@ import com.techelevator.tenmo.dao.JdbcTransactionDao;
 import com.techelevator.tenmo.dao.TransactionDao;
 import com.techelevator.tenmo.model.Account;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
 /**
  * Controller to verify that transfers can be done.
  */
+
+@Component
 public class ChecksController {
     private TransactionDao transactionDao;
     private AccountDao accountDao;

@@ -18,14 +18,14 @@ public class JdbcAccountDao implements AccountDao{
     }
 
     @Override
-    public BigDecimal addToBalance(int accountId, BigDecimal amount) {
-        BigDecimal currentBalance = this.getBalanceByAccountId(accountId);
+    public BigDecimal addToBalance(int userId, BigDecimal amount) {
+        BigDecimal currentBalance = this.getBalanceByUserId(userId);
         BigDecimal newBalance = currentBalance.add(amount);
-        String sql = "UPDATE account SET balance = ? WHERE account_id = ? RETURNING balance";
+        String sql = "UPDATE account SET balance = ? WHERE user_id = ? RETURNING balance";
         BigDecimal returningBalance = null;
 
         try {
-            returningBalance = jdbcTemplate.queryForObject(sql, BigDecimal.class, newBalance, accountId);
+            returningBalance = jdbcTemplate.queryForObject(sql, BigDecimal.class, newBalance, userId);
         } catch (DataAccessException e) {
             return null;
         }
@@ -33,15 +33,15 @@ public class JdbcAccountDao implements AccountDao{
     }
 
     @Override
-    public BigDecimal subtractFromBalance(int accountId, BigDecimal amount) {
-        BigDecimal currentBalance = this.getBalanceByAccountId(accountId);
+    public BigDecimal subtractFromBalance(int userId, BigDecimal amount) {
+        BigDecimal currentBalance = this.getBalanceByUserId(userId);
         BigDecimal newBalance = currentBalance.subtract(amount);
-        String sql = "UPDATE account SET balance = ? WHERE account_id = ? RETURNING balance";
+        String sql = "UPDATE account SET balance = ? WHERE user_id = ? RETURNING balance";
         BigDecimal returningBalance = null;
 
         // TODO check for new balance after transaction > 0.00
         try {
-            returningBalance = jdbcTemplate.queryForObject(sql, BigDecimal.class, newBalance, accountId);
+            returningBalance = jdbcTemplate.queryForObject(sql, BigDecimal.class, newBalance, userId);
         } catch (DataAccessException e) {
             return null;
         }
@@ -55,7 +55,7 @@ public class JdbcAccountDao implements AccountDao{
         if (rowSet.next()){
             return rowSet.getBigDecimal("balance");
         }
-        throw new UsernameNotFoundException("Balance for " + userId + " was not found.");
+        throw new UsernameNotFoundException("Balance for User ID:" + userId + " was not found. (getBalanceByUserId)");
     }
 
     @Override
@@ -65,7 +65,7 @@ public class JdbcAccountDao implements AccountDao{
         if (rowSet.next()){
             return rowSet.getBigDecimal("balance");
         }
-        throw new UsernameNotFoundException("Balance for " + acctId + " was not found.");
+        throw new UsernameNotFoundException("Balance for " + acctId + " was not found.(getBalanceByAccountId)");
     }
 
     private Account mapRowToAccount(SqlRowSet rs){

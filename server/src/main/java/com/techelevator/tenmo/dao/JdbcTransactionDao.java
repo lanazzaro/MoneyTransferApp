@@ -21,7 +21,7 @@ public class JdbcTransactionDao implements TransactionDao{
 
     @Override
     public boolean create(Transaction transaction) {
-        String sql = "INSERT INTO transaction (from_user_id, to_user_id, amount, status, trans_date) VALUES (?, ?, ?, ?, ?) RETURNING transaction_id";
+        String sql = "INSERT INTO transactions (from_user_id, to_user_id, amount, status, trans_date) VALUES (?, ?, ?, ?, ?) RETURNING transaction_id";
         Integer newTransId;
         try {
             newTransId = jdbcTemplate.queryForObject(sql, Integer.class, transaction.getFromUserId(), transaction.getToUserId(), transaction.getAmount(), transaction.getStatus(), transaction.getTransTimestamp());
@@ -33,7 +33,7 @@ public class JdbcTransactionDao implements TransactionDao{
 
     @Override
     public Transaction getTransactionById(int transId) {
-        String sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transaction WHERE transaction_id = ?";
+        String sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE transaction_id = ?";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, transId);
         if (rowSet.next()){
             return mapRowToTransactions(rowSet);
@@ -45,7 +45,7 @@ public class JdbcTransactionDao implements TransactionDao{
 
     @Override
     public List<Transaction> getTransactionsByUser(int userId) {
-        String sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transaction WHERE user_id = ?";
+        String sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE user_id = ?";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, userId);
         List<Transaction> outputList = new ArrayList<>();
         while (rowSet.next()){
@@ -56,7 +56,7 @@ public class JdbcTransactionDao implements TransactionDao{
 
     @Override
     public String getStatus(int transId) {
-        String sql = "SELECT status FROM transaction WHERE transaction_id = ?";
+        String sql = "SELECT status FROM transactions WHERE transaction_id = ?";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, transId);
         if (rowSet.next()){
             return rowSet.getString("status");
@@ -66,7 +66,7 @@ public class JdbcTransactionDao implements TransactionDao{
 
     @Override
     public boolean updateStatus(int transId, String status) {
-        String sql = "UPDATE transaction SET status = ? WHERE transaction_id = ? RETURNING status";
+        String sql = "UPDATE transactions SET status = ? WHERE transaction_id = ? RETURNING status";
         String returnedStatus = null;
 
         try {

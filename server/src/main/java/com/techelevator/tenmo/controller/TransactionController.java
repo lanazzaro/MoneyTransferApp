@@ -40,7 +40,8 @@ public class TransactionController {
     @RequestMapping(path = "/send", method = RequestMethod.POST)
     public void sendMoney(@RequestBody @Valid TransactionDTO inputTransactionDto, Principal principal){
         int fromUserId = userDao.findIdByUsername(principal.getName());
-        if (!checksController.userIdsAreDifferent(fromUserId, inputTransactionDto.getUserId())){
+        int toUserId = inputTransactionDto.getUserId();
+        if (!checksController.userIdsAreDifferent(fromUserId, toUserId)){
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Transaction must go to someone other than yourself.");
         }
         // if check balance fails
@@ -52,14 +53,10 @@ public class TransactionController {
         Transaction newTransaction = new Transaction();
         newTransaction.setStatus("Approved");
         newTransaction.setFromUserId(fromUserId);
-        newTransaction.setToUserId(inputTransactionDto.getUserId());
+        newTransaction.setToUserId(toUserId);
         newTransaction.setAmount(inputTransactionDto.getAmount());
 
-        // reduce from user's amount by balance amount
-        accountDao.subtractFromBalance(fromUserId, newTransaction.getAmount());
-
-        // add to user's amount by balance amount
-        accountDao.addToBalance(newTransaction.getToUserId(), newTransaction.getAmount());
+        runTransaction(fromUserId, toUserId, newTransaction.getAmount());
 
         // create and log transaction
         boolean transactionResult = transactionDao.create(newTransaction);
@@ -76,10 +73,7 @@ public class TransactionController {
         if (!checksController.userIdsAreDifferent(toUserId, inputTransactionDto.getUserId())){
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "You can't request money from yourself.");
         }
-        // check toUser's balance
-        if (!checksController.enoughMoney(fromUserId, inputTransactionDto.getAmount())) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "New transaction amounts cannot exceed a user's current balance.");
-        }
+
         // set status approved
         Transaction newTransaction = new Transaction();
         newTransaction.setStatus("Pending");
@@ -99,16 +93,32 @@ public class TransactionController {
         return transactionDao.getTransactionsByUser(userDao.findIdByUsername(principal.getName()), onlyPending);
     }
 
-    @RequestMapping(path = "/view/transactions/{transId}", method = RequestMethod.GET)
+    @RequestMapping(path = "/{transId}", method = RequestMethod.GET)
     public Transaction viewTransById(@PathVariable int transId, Principal principal){
         return transactionDao.getTransactionById(transId, userDao.findIdByUsername(principal.getName()));
     }
 
+    @RequestMapping(path = "/pending-decision/{transId}/{decisionBool}", method = RequestMethod.GET)
+    public void decidePendingTransaction(@PathVariable int transId, @PathVariable boolean decisionBool, Principal principal){
+        int fromUserId = userDao.findIdByUsername(principal.getName());
+        Transaction transaction = transactionDao.getTransactionById(transId, fromUserId);
+        if (transaction == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No transactions found for that transaction ID for the authenticated user (decidePendingTransaction).");
+        }
 
-//    -request from spc user (cant be self, more than $0)
-//    -get transaction details by id
-//    -get transaction by user
-//    -get List of users --> put in user controller?
+        // IF TRANSACTION ACCEPTED THEN TRY TO RUN IT. IF RUN PASSES THEN SET TO APPROVE. ELSE LEAVE PENDING. IF DENIED THEN SET STATUS TO DENIED.
+        if (decisionBool){
+            boolean transactionResult = runTransaction(fromUserId, transaction.getToUserId(), transaction.getAmount());
+            if (!transactionResult){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Transaction unsuccessful. Please contact support. (decidePendingTransaction)");
+            } else {
+                transactionDao.updateStatus(transId, "Approved", fromUserId);
+            }
+        } else {
+            transactionDao.updateStatus(transId, "Rejected", fromUserId);
+        }
+    }
+
     @RequestMapping(path = "/userlist", method = RequestMethod.GET)
     public List<PresentableUser> getUsers(){
         List<PresentableUser> userList = new ArrayList<>();
@@ -128,11 +138,31 @@ public class TransactionController {
         }
         return userList;
     }
-//    -get List(??) of pending transactions
-//    -make pending transaction decision (checks)
-//        -if accept, update balance
-//        -change status
-//        -must have enough $
-//    -view transaction history
+
+    private boolean runTransaction(int fromUserId, int toUserId, BigDecimal amount) {
+        BigDecimal subtractedAmount = null;
+        BigDecimal addedAmount = null;
+
+        if(!checksController.enoughMoney(fromUserId, amount)){
+            return false;
+        }
+
+        // reduce from user's amount by balance amount
+        subtractedAmount = accountDao.subtractFromBalance(fromUserId, amount);
+        // add to user's amount by balance amount
+        addedAmount = accountDao.addToBalance(toUserId, amount);
+
+        // IF ANY VALUES ARE NULL THEN THE LOGIC DID NOT WORK. REVERSE.
+        if (subtractedAmount == null && addedAmount != null){
+            accountDao.subtractFromBalance(toUserId ,addedAmount);
+        } else if (subtractedAmount != null && addedAmount == null) {
+            accountDao.addToBalance(fromUserId, subtractedAmount);
+        } else if (subtractedAmount == null && addedAmount == null) {
+            return false;
+        }
+
+        return true;
+    }
+
 
 }

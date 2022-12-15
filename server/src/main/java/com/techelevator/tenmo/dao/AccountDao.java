@@ -5,7 +5,6 @@ import com.techelevator.tenmo.model.Account;
 import java.math.BigDecimal;
 
 public interface AccountDao {
-    //boolean create(int userId, BigDecimal balance);
 
     BigDecimal addToBalance(int accountId, BigDecimal amount);
 
@@ -13,5 +12,5 @@ public interface AccountDao {
 
     BigDecimal getBalanceByUserId(int userId);
 
-    BigDecimal getBalanceByAccountId(int acctId);
+    //BigDecimal getBalanceByAccountId(int acctId);
 }

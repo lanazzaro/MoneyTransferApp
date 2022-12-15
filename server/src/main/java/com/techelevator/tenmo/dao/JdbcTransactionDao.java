@@ -42,18 +42,18 @@ public class JdbcTransactionDao implements TransactionDao{
         throw new UsernameNotFoundException("Transaction for " + transId + " was not found or you are not allowed to view it ;)");
     }
 
-//if true, only return Pending transfers, else return all transfers
+//if true, only return Pending transfers, else return all transfers. If pending transfers then return for to and from user matches.
     @Override
     public List<Transaction> getTransactionsByUser(int userId, boolean onlyPending) {
         String sql = "";
 
         if(onlyPending) {
-            sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE from_user_id = ? and status = 'Pending'";
+            sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE (from_user_id = ? OR to_user_id = ?) and status = 'Pending'";
         } else {
             sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE from_user_id = ?";
         }
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, userId);
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, userId, userId);
         List<Transaction> outputList = new ArrayList<>();
         while (rowSet.next()){
             outputList.add(mapRowToTransactions(rowSet));
@@ -72,16 +72,19 @@ public class JdbcTransactionDao implements TransactionDao{
     }
 
     @Override
-    public boolean updateStatus(int transId, String status) {
-        String sql = "UPDATE transactions SET status = ? WHERE transaction_id = ? RETURNING status";
+    public String updateStatus(int transId, String status, int fromUserId) {
+        String sql = "UPDATE transactions SET status = ? WHERE transaction_id = ? AND from_user_id = ? RETURNING status";
         String returnedStatus = null;
 
         try {
-            returnedStatus = jdbcTemplate.queryForObject(sql, String.class, status, transId);
+            returnedStatus = jdbcTemplate.queryForObject(sql, String.class, status, transId, fromUserId);
         } catch (DataAccessException e) {
-            return false;
+            return returnedStatus;
         }
-        return true;
+        if (returnedStatus == null){
+            throw new UsernameNotFoundException("Transaction for"  + transId +  "was not found or you are not allowed to view it ;)");
+        }
+        return returnedStatus;
     }
 
     private Transaction mapRowToTransactions(SqlRowSet rs) {

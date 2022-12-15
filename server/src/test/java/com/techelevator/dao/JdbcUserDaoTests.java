@@ -27,5 +27,6 @@ public class JdbcUserDaoTests extends BaseDaoTests{
         User user = sut.findByUsername("TEST_USER");
         Assert.assertEquals("TEST_USER", user.getUsername());
     }
+    // TODO add extra test in createNewUser test for creating an account
 
 }

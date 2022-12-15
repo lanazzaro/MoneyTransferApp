@@ -14,5 +14,5 @@ public interface TransactionDao {
 
     String getStatus(int transId);
 
-    boolean updateStatus(int transId, String status);
+    String updateStatus(int transId, String status, int fromUserId);
 }

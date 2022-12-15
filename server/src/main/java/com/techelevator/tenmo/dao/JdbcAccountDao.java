@@ -58,15 +58,15 @@ public class JdbcAccountDao implements AccountDao{
         throw new UsernameNotFoundException("Balance for User ID:" + userId + " was not found. (getBalanceByUserId)");
     }
 
-    @Override
-    public BigDecimal getBalanceByAccountId(int acctId) {
-        String sql = "SELECT balance FROM account WHERE account_id = ?";
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, acctId);
-        if (rowSet.next()){
-            return rowSet.getBigDecimal("balance");
-        }
-        throw new UsernameNotFoundException("Balance for " + acctId + " was not found.(getBalanceByAccountId)");
-    }
+//    @Override
+//    public BigDecimal getBalanceByAccountId(int acctId) {
+//        String sql = "SELECT balance FROM account WHERE account_id = ?";
+//        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, acctId);
+//        if (rowSet.next()){
+//            return rowSet.getBigDecimal("balance");
+//        }
+//        throw new UsernameNotFoundException("Balance for " + acctId + " was not found.(getBalanceByAccountId)");
+//    }
 
     private Account mapRowToAccount(SqlRowSet rs){
         Account account = new Account();

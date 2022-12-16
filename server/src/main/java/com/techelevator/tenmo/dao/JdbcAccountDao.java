@@ -20,6 +20,10 @@ public class JdbcAccountDao implements AccountDao{
     @Override
     public BigDecimal addToBalance(int userId, BigDecimal amount) {
         BigDecimal currentBalance = this.getBalanceByUserId(userId);
+        if (amount.compareTo(BigDecimal.ZERO) <= 0){
+            return null;
+        }
+
         BigDecimal newBalance = currentBalance.add(amount);
         String sql = "UPDATE account SET balance = ? WHERE user_id = ? RETURNING balance";
         BigDecimal returningBalance = null;
@@ -35,6 +39,9 @@ public class JdbcAccountDao implements AccountDao{
     @Override
     public BigDecimal subtractFromBalance(int userId, BigDecimal amount) {
         BigDecimal currentBalance = this.getBalanceByUserId(userId);
+        if (amount.compareTo(BigDecimal.ZERO) <= 0){
+            return null;
+        }
         BigDecimal newBalance = currentBalance.subtract(amount);
         String sql = "UPDATE account SET balance = ? WHERE user_id = ? RETURNING balance";
         BigDecimal returningBalance = null;

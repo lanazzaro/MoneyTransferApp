@@ -39,7 +39,6 @@ public class ChecksController {
         } return true;
     }
 
-
     /*
     checks status if approved -> then transfer $/change balance, if rejected no change
      */

@@ -38,11 +38,4 @@ public class ChecksController {
             return false;
         } return true;
     }
-
-    /*
-    checks status if approved -> then transfer $/change balance, if rejected no change
-     */
-
-    //TODO make transaction controller w/ set status to x depending on request/send
-    //TODO make sure to include @Valid on balance and amount
 }

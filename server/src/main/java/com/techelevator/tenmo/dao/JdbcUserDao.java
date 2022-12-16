@@ -66,7 +66,7 @@ public class JdbcUserDao implements UserDao {
         } catch (DataAccessException e) {
             return false;
         }
-
+        // create account for new users with user creation
         String sqlAccount = "INSERT INTO account (user_id, balance) VALUES (?, ?) RETURNING account_id";
         Integer newAccountId;
         try {

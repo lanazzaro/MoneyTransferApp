@@ -12,5 +12,4 @@ public interface AccountDao {
 
     BigDecimal getBalanceByUserId(int userId);
 
-    //BigDecimal getBalanceByAccountId(int acctId);
 }

@@ -46,7 +46,6 @@ public class JdbcAccountDao implements AccountDao{
         String sql = "UPDATE account SET balance = ? WHERE user_id = ? RETURNING balance";
         BigDecimal returningBalance = null;
 
-        // TODO check for new balance after transaction > 0.00
         try {
             returningBalance = jdbcTemplate.queryForObject(sql, BigDecimal.class, newBalance, userId);
         } catch (DataAccessException e) {
@@ -64,16 +63,6 @@ public class JdbcAccountDao implements AccountDao{
         }
         throw new UsernameNotFoundException("Balance for User ID:" + userId + " was not found. (getBalanceByUserId)");
     }
-
-//    @Override
-//    public BigDecimal getBalanceByAccountId(int acctId) {
-//        String sql = "SELECT balance FROM account WHERE account_id = ?";
-//        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, acctId);
-//        if (rowSet.next()){
-//            return rowSet.getBigDecimal("balance");
-//        }
-//        throw new UsernameNotFoundException("Balance for " + acctId + " was not found.(getBalanceByAccountId)");
-//    }
 
     private Account mapRowToAccount(SqlRowSet rs){
         Account account = new Account();

@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
 import java.security.Timestamp;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -19,6 +20,8 @@ public class JdbcTransactionDaoTest extends BaseDaoTests {
     private JdbcAccountDao accountDao;
     private User testUser;
     private User testUser2;
+    private User bob;
+    private User user;
 
     @Before
     public void setup() {
@@ -30,6 +33,7 @@ public class JdbcTransactionDaoTest extends BaseDaoTests {
         testUser = userDao.findByUsername("TEST_USER");
         userDao.create("TEST_USER_2", "test_password_2");
         testUser2 = userDao.findByUsername("TEST_USER_2");
+        bob = userDao.findByUsername("bob");
     }
 
     @Test
@@ -47,8 +51,8 @@ public class JdbcTransactionDaoTest extends BaseDaoTests {
         testTransaction.setFromUserId(testUser.getId());
         testTransaction.setToUserId(testUser2.getId());
 
-        boolean transResult = transDao.create(testTransaction);
-        Assert.assertTrue(transResult);
+        int transResult = transDao.create(testTransaction);
+        Assert.assertNotEquals(0, transResult);
     }
 
     @Test
@@ -59,13 +63,13 @@ public class JdbcTransactionDaoTest extends BaseDaoTests {
         testTransaction.setFromUserId(testUser.getId());
         testTransaction.setToUserId(testUser2.getId());
 
-        boolean transResult = transDao.create(testTransaction);
+        int transResult = transDao.create(testTransaction);
 
-        if(!transResult){
+        if(transResult == 0){
             Assert.fail("transaction was not created properly");
         }
 
-        Transaction testResult = transDao.getTransactionById(3001, testUser.getId());
+        Transaction testResult = transDao.getTransactionById(transResult, testUser.getId());
 
         Assert.assertEquals(testTransaction.getAmount(),testResult.getAmount());
         Assert.assertEquals(testTransaction.getStatus(), testResult.getStatus());
@@ -74,15 +78,61 @@ public class JdbcTransactionDaoTest extends BaseDaoTests {
 
     }
 
-    /*
-    getTransactionById
+    @Test
+    public void getTransactionsByUser() {
+        Transaction testTransaction = new Transaction();
+        testTransaction.setAmount(new BigDecimal("50.00"));
+        testTransaction.setStatus("Approved");
+        testTransaction.setFromUserId(bob.getId());
+        testTransaction.setToUserId(testUser2.getId());
+        int transResult = transDao.create(testTransaction);
 
-    getTransactionsByUser
+        Transaction testTransaction2 = new Transaction();
+        testTransaction2.setAmount(new BigDecimal("100.00"));
+        testTransaction2.setStatus("Approved");
+        testTransaction2.setFromUserId(bob.getId());
+        testTransaction2.setToUserId(testUser2.getId());
+        int transResult2 = transDao.create(testTransaction2);
 
-    getStatus
+        List<Transaction> testResults = transDao.getTransactionsByUser(bob.getId(), false);
 
-    updateStatus
+        // assert that only Bob's two transactions show up in the list
+        Assert.assertEquals(2, testResults.size());
 
-     */
+        // loop through testResults. if result does not belong to bob, fail
+        for (Transaction trans: testResults) {
+            if (trans.getFromUserId() != bob.getId()){
+                Assert.fail("Transaction not belonging to from user found in results from getTransactionsByUser()");
+            }
+        }
+    }
 
+    @Test
+    public void getStatusTest() {
+        Transaction testTransaction = new Transaction();
+        testTransaction.setAmount(new BigDecimal("50.00"));
+        testTransaction.setStatus("Approved");
+        testTransaction.setFromUserId(testUser.getId());
+        testTransaction.setToUserId(testUser2.getId());
+
+        int transResult = transDao.create(testTransaction);
+
+        Assert.assertEquals("Approved", transDao.getStatus(transResult));
+    }
+
+    @Test
+    public void updateStatusTest() {
+        Transaction testTransaction = new Transaction();
+        testTransaction.setAmount(new BigDecimal("50.00"));
+        testTransaction.setStatus("Pending");
+        testTransaction.setFromUserId(testUser.getId());
+        testTransaction.setToUserId(testUser2.getId());
+
+        int transResult = transDao.create(testTransaction);
+
+        String updatedResult = transDao.updateStatus(transResult, "Denied", testUser.getId());
+
+        Assert.assertEquals("Denied", updatedResult);
+        Assert.assertEquals("Denied", transDao.getStatus(transResult));
+    }
 }

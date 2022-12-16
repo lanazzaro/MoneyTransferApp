@@ -20,15 +20,15 @@ public class JdbcTransactionDao implements TransactionDao{
     }
 
     @Override
-    public boolean create(Transaction transaction) {
+    public int create(Transaction transaction) {
         String sql = "INSERT INTO transactions (from_user_id, to_user_id, amount, status, trans_date) VALUES (?, ?, ?, ?, ?) RETURNING transaction_id";
         Integer newTransId;
         try {
             newTransId = jdbcTemplate.queryForObject(sql, Integer.class, transaction.getFromUserId(), transaction.getToUserId(), transaction.getAmount(), transaction.getStatus(), transaction.getTransTimestamp());
         } catch (DataAccessException e) {
-            return false;
+            return 0;
         }
-        return true;
+        return newTransId;
     }
 
     @Override
@@ -38,7 +38,6 @@ public class JdbcTransactionDao implements TransactionDao{
         if (rowSet.next()){
             return mapRowToTransactions(rowSet);
         }
-        // TODO low priorty - add new custom exceptions
         throw new UsernameNotFoundException("Transaction for " + transId + " was not found or you are not allowed to view it ;)");
     }
 
@@ -46,14 +45,16 @@ public class JdbcTransactionDao implements TransactionDao{
     @Override
     public List<Transaction> getTransactionsByUser(int userId, boolean onlyPending) {
         String sql = "";
+        SqlRowSet rowSet = null;
 
         if(onlyPending) {
             sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE (from_user_id = ? OR to_user_id = ?) and status = 'Pending'";
+            rowSet = jdbcTemplate.queryForRowSet(sql, userId, userId);
         } else {
             sql = "SELECT transaction_id ,from_user_id, to_user_id, amount, status, trans_date FROM transactions WHERE from_user_id = ?";
+            rowSet = jdbcTemplate.queryForRowSet(sql, userId);
         }
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, userId, userId);
         List<Transaction> outputList = new ArrayList<>();
         while (rowSet.next()){
             outputList.add(mapRowToTransactions(rowSet));

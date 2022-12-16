@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface TransactionDao {
 
-    boolean create(Transaction transaction);
+    int create(Transaction transaction);
 
     Transaction getTransactionById(int transId, int fromUserId);
 

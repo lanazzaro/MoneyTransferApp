@@ -59,13 +59,13 @@ public class TransactionController {
         runTransaction(fromUserId, toUserId, newTransaction.getAmount());
 
         // create and log transaction
-        boolean transactionResult = transactionDao.create(newTransaction);
-        if (!transactionResult) {
+        int transactionResult = transactionDao.create(newTransaction);
+        if (transactionResult == 0) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction did not save to the database. (sendMoney)");
         }
     }
-//create request, get pending request, decide pending request
 
+    //create request, get pending request, decide pending request
     @RequestMapping(path = "/request", method = RequestMethod.POST)
     public void requestMoney(@RequestBody @Valid TransactionDTO inputTransactionDto, Principal principal){
         int fromUserId = inputTransactionDto.getUserId();
@@ -82,8 +82,8 @@ public class TransactionController {
         newTransaction.setAmount(inputTransactionDto.getAmount());
 
         // create and log transaction
-        boolean transactionResult = transactionDao.create(newTransaction);
-        if (!transactionResult) {
+        int transactionResult = transactionDao.create(newTransaction);
+        if (transactionResult == 0) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Transaction did not save to the database. (requestMoney)");
         }
     }
